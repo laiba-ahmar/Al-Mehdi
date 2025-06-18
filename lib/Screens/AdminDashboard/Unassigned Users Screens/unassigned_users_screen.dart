@@ -22,9 +22,8 @@ class _UnassignedUsersScreenState extends State<UnassignedUsersScreen> {
 
   Future<void> fetchUnassignedTeachers() async {
     final snapshot = await FirebaseFirestore.instance
-      .collection('unassigned_teachers')
-      .where('assigned', isEqualTo: false)
-      .get();
+        .collection('unassigned_teachers')
+        .get(); // No longer filtering by 'assigned' field here, will display all teachers
 
     setState(() {
       unassignedTeachers = snapshot.docs.map((doc) => {
@@ -32,6 +31,7 @@ class _UnassignedUsersScreenState extends State<UnassignedUsersScreen> {
         'name': doc['fullName'],
         'role': 'Teacher',
         'avatar': 'https://i.pravatar.cc/100?u=${doc['uid']}',
+        'assigned': doc['assigned'], // Add assigned status here
       }).toList();
       loading = false;
     });
@@ -125,6 +125,11 @@ class _UnassignedUsersScreenState extends State<UnassignedUsersScreen> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Assigned: ${user['assigned'] ? "Yes" : "No"}',
+                                style: TextStyle(fontSize: fontSize - 2, color: Colors.grey[600]),
                               ),
                             ],
                           ),

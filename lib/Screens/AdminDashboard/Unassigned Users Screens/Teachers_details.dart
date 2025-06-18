@@ -195,23 +195,28 @@ class TeachersDetails extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        await FirebaseFirestore.instance
-                            .collection('teachers')
-                            .doc(user['uid'])
-                            .update({
-                          'assignedStudentId': 'STUDENT_UID', // Replace with the student's UID
+                        // Replace 'STUDENT_UID' dynamically from the selected student
+                        String studentUid = "SELECTED_STUDENT_UID";  // Replace with actual selected student UID
+
+                        // Fetch the current assigned student IDs
+                        var teacherDocRef = FirebaseFirestore.instance.collection('teachers').doc(user['uid']);
+                        var teacherDoc = await teacherDocRef.get();
+                        List<dynamic> assignedStudentIds = teacherDoc.data()?['assignedStudentIds'] ?? [];
+
+                        // Add the new student ID to the list of assigned students
+                        assignedStudentIds.add(studentUid);  // Add the dynamically selected student ID
+
+                        // Update the teacher document with the new assigned student IDs
+                        await teacherDocRef.update({
+                          'assignedStudentIds': assignedStudentIds,
                           'assigned': true,
                         });
 
+                        // Update the teacher's data in the 'unassigned_teachers' collection
                         await FirebaseFirestore.instance
                             .collection('unassigned_teachers')
                             .doc(user['uid'])
-                            .update({'assigned': true}); // Update 'assigned' field
-
-                        await FirebaseFirestore.instance
-                            .collection('unassigned_teachers')
-                            .doc(user['uid'])
-                            .delete(); // Delete from unassigned_teachers after assignment
+                            .update({'assigned': true});
 
                         Navigator.push(
                           context,

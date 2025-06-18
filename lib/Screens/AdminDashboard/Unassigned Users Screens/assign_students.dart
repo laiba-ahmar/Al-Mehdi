@@ -22,9 +22,9 @@ class _AssignStudentsState extends State<AssignStudents> {
 
   Future<void> fetchUnassignedStudents() async {
     final snapshot = await FirebaseFirestore.instance
-      .collection('unassigned_students')
-      .where('assigned', isEqualTo: false)
-      .get();
+        .collection('unassigned_students')
+        .where('assigned', isEqualTo: false)
+        .get();
 
     setState(() {
       unassignedStudents = snapshot.docs.map((doc) => {
@@ -48,7 +48,7 @@ class _AssignStudentsState extends State<AssignStudents> {
 
     // Update teacher's assignedStudentId field
     await FirebaseFirestore.instance.collection('teachers').doc(widget.teacherUid).update({
-      'assignedStudentId': student['uid'], // Assign the student's UID to the teacher
+      'assignedStudentIds': FieldValue.arrayUnion([student['uid']]), // Add the student's UID to the list
     });
 
     setState(() {
