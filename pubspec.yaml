@@ -28,8 +28,11 @@ dependencies:
   provider: ^6.1.5
   image_picker: ^1.1.2
   auto_size_text: ^3.0.0
-
-
+  jitsi_meet_flutter_sdk: ^11.2.0
+  webview_flutter: ^4.7.0  
+  flutter_html: ^3.0.0-beta.2
+  url_launcher: ^6.2.5
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

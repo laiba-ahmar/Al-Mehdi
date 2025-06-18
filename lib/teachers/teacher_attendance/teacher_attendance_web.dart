@@ -42,9 +42,7 @@ class TeacherAttendanceWebView extends StatelessWidget {
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(
-                          Icons.notifications,
-                        ),
+                        icon: const Icon(Icons.notifications),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -76,7 +74,7 @@ class TeacherAttendanceWebView extends StatelessWidget {
       padding: const EdgeInsets.all(20.0),
       child: Row(
         children: [
-          _buildDropdown(context ,"Student"),
+          _buildDropdown(context, "Student"),
           const SizedBox(width: 20),
           _buildDropdown(context, "Class"),
           const SizedBox(width: 20),
@@ -110,9 +108,10 @@ class TeacherAttendanceWebView extends StatelessWidget {
   }
 
   Widget _buildDropdown(BuildContext context, String hint) {
-    Color dropdownColor = Theme.of(context).brightness == Brightness.dark
-        ? darkBackground// Dark theme: Red
-        : appLightGreen; // Light theme: Green
+    Color dropdownColor =
+        Theme.of(context).brightness == Brightness.dark
+            ? darkBackground // Dark theme: Red
+            : appLightGreen; // Light theme: Green
     return Expanded(
       flex: 1,
       child: Container(
@@ -149,15 +148,9 @@ class TeacherAttendanceWebView extends StatelessWidget {
         children: [
           Text(
             "Student",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          Text(
-            "May 6, 2025 · 9:00 AM",
-            style: TextStyle(fontSize: 14),
-          ),
+          Text("May 6, 2025 · 9:00 AM", style: TextStyle(fontSize: 14)),
         ],
       ),
     );

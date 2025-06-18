@@ -1,4 +1,4 @@
-import 'package:al_mehdi_online_school/Screens/Auth%20Screens/login_screen.dart';
+import 'package:al_mehdi_online_school/Screens/Auth%20Screens/Main_page.dart';
 import 'package:al_mehdi_online_school/components/Custom_button.dart';
 import 'package:al_mehdi_online_school/constants/colors.dart';
 import 'package:flutter/material.dart';
@@ -23,12 +23,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       "image": "assets/images/Onboarding2.jpg",
       "title": "Chat with Tutors",
-      "subtitle": "Instantly connect with tutors to ask questions or clear doubts.",
+      "subtitle":
+          "Instantly connect with tutors to ask questions or clear doubts.",
     },
     {
       "image": "assets/images/Onboarding3.jpg",
       "title": "Track Your Progress",
-      "subtitle": "Monitor attendance, performance and stay on top of your schedule.",
+      "subtitle":
+          "Monitor attendance, performance and stay on top of your schedule.",
     },
   ];
 
@@ -39,14 +41,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      _goToLogin();
+      _goToMain();
     }
   }
 
-  void _goToLogin() {
+  void _goToMain() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      MaterialPageRoute(builder: (context) => const MainPage()),
     );
   }
 
@@ -66,7 +68,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: SizedBox(
               width: constraints.maxWidth > 600 ? 600 : double.infinity,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 32,
+                ),
                 child: Column(
                   children: [
                     Expanded(
@@ -121,9 +126,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: _currentPage == i ? 12 : 8,
                           height: _currentPage == i ? 12 : 8,
                           decoration: BoxDecoration(
-                            color: _currentPage == i
-                                ? appGreen
-                                : appGreen.withOpacity(0.3),
+                            color:
+                                _currentPage == i
+                                    ? appGreen
+                                    : appGreen.withOpacity(0.3),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -132,37 +138,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     const SizedBox(height: 24),
                     _currentPage == _onboardingData.length - 1
                         ? CustomButton(
-                            text: "Get Started",
-                            onPressed: _goToLogin,
-                          )
+                          text: "Get Started",
+                          onPressed: _goToMain,
+                        )
                         : Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  _pageController.jumpToPage(_onboardingData.length - 1);
-                                },
-                                child: const Text(
-                                  "Skip",
-                                  style: TextStyle(color: Colors.grey),
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                _pageController.jumpToPage(
+                                  _onboardingData.length - 1,
+                                );
+                              },
+                              child: const Text(
+                                "Skip",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: _nextPage,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: appGreen,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              ElevatedButton(
-                                onPressed: _nextPage,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: appGreen,
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "Next",
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                              child: const Text(
+                                "Next",
+                                style: TextStyle(color: Colors.white),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
+                        ),
                     const SizedBox(height: 16),
                   ],
                 ),

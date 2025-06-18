@@ -19,7 +19,7 @@ class ClassesList extends StatelessWidget {
         : FirebaseFirestore.instance
             .collection('classes')
             .where('status', isEqualTo: type)
-            .where('studentId', isEqualTo: userId);
+            .where('teacherId', isEqualTo: userId);
 
     return StreamBuilder<QuerySnapshot>(
       stream: classesQuery.snapshots(),
@@ -31,12 +31,14 @@ class ClassesList extends StatelessWidget {
           return Center(
             child: Padding(
               padding: const EdgeInsets.only(top: 48.0),
-              child: Text(
-                'No $type classes',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
+              child: Center(
+                child: Text(
+                  'No $type classes',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
@@ -51,7 +53,7 @@ class ClassesList extends StatelessWidget {
             final c = classes[index].data() as Map<String, dynamic>;
             final docId = classes[index].id;
             final subject = c['subject'] ?? '';
-            final teacherName = c['teacherName'] ?? '';
+            final studentName = c['studentName'] ?? '';
             final date = c['date'] ?? '';
             final time = c['time'] ?? '';
             final jitsiRoom = c['jitsiRoom'] ?? '';
@@ -79,21 +81,21 @@ class ClassesList extends StatelessWidget {
             final isPast = classDateTime != null && classDateTime.isBefore(now);
 
             // Show join button for upcoming classes, otherwise show joined label if joined
-            bool showJoin = type == 'upcoming' && !studentJoined;
-            bool showJoinedLabel = type == 'upcoming' && studentJoined;
+            bool showJoin = type == 'upcoming' && !teacherJoined;
+            bool showJoinedLabel = type == 'upcoming' && teacherJoined;
 
-            // Missed logic for student:
-            // 1. teacherJoined == true && studentJoined == false (teacher joined, student didn't)
+            // Missed logic for teacher:
+            // 1. studentJoined == true && teacherJoined == false (student joined, teacher didn't)
             // 2. teacherJoined == false && studentJoined == false && class time is in the past (neither joined)
             bool showMissed = type == 'missed' &&
                 isPast &&
                 (
-                  (teacherJoined == true && studentJoined == false) ||
+                  (studentJoined == true && teacherJoined == false) ||
                   (teacherJoined == false && studentJoined == false)
                 );
 
-            // Completed logic for student:
-            bool showCompleted = type == 'completed' && studentJoined == true;
+            // Completed logic for teacher:
+            bool showCompleted = type == 'completed' && teacherJoined == true;
 
             if (type == 'missed' && !showMissed) return const SizedBox.shrink();
             if (type == 'completed' && !showCompleted) return const SizedBox.shrink();
@@ -118,7 +120,7 @@ class ClassesList extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Teacher: $teacherName',
+                    'Student: $studentName',
                     style: const TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 15,
@@ -141,7 +143,7 @@ class ClassesList extends StatelessWidget {
                                 await FirebaseFirestore.instance
                                     .collection('classes')
                                     .doc(docId)
-                                    .update({'studentJoined': true});
+                                    .update({'teacherJoined': true});
                                 // Optionally, join the meeting here if needed
                               }
                             : null,

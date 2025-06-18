@@ -1,3 +1,4 @@
+import 'package:al_mehdi_online_school/teachers/teacher_home_screen/teacher_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -5,17 +6,13 @@ import '../../../constants/colors.dart';
 import '../teacher_attendance/teacher_attendance.dart';
 import '../teacher_chat/teacher_chat.dart';
 import '../teacher_classes_screen/teacher_classes.dart';
-import '../teacher_home_screen/teacher_home_screen.dart';
 import '../teacher_profile/teacher_profile.dart';
 import '../teacher_settings/teacher_settings.dart';
 
 class Sidebar extends StatelessWidget {
   final int selectedIndex;
 
-  const Sidebar({
-    super.key,
-    required this.selectedIndex,
-  });
+  const Sidebar({super.key, required this.selectedIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +34,7 @@ class Sidebar extends StatelessWidget {
             label: 'Home',
             selected: selectedIndex == 0,
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const TeacherHomeScreen(),
@@ -51,7 +48,7 @@ class Sidebar extends StatelessWidget {
             label: 'Classes',
             selected: selectedIndex == 1,
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const TeacherClassesScreen(),
@@ -65,7 +62,7 @@ class Sidebar extends StatelessWidget {
             label: 'Attendance',
             selected: selectedIndex == 2,
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const TeacherAttendanceScreen(),
@@ -79,7 +76,7 @@ class Sidebar extends StatelessWidget {
             label: 'Chat',
             selected: selectedIndex == 3,
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const TeacherChatScreen(),
@@ -93,7 +90,7 @@ class Sidebar extends StatelessWidget {
             label: 'Settings',
             selected: selectedIndex == 4,
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const TeacherSettingsScreen(),
@@ -107,10 +104,10 @@ class Sidebar extends StatelessWidget {
             label: 'Profile',
             selected: selectedIndex == 5,
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => TeacherProfileScreen(),
+                  builder: (context) => const TeacherProfileScreen(),
                 ),
               );
             },

@@ -1,6 +1,6 @@
 import 'package:al_mehdi_online_school/constants/colors.dart';
-import 'package:al_mehdi_online_school/teachers/teacher_home_screen/teacher_home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart'; // ✅ Import generated config
@@ -12,10 +12,15 @@ final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  print("✅ Firebase initialized");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Set persistence to LOCAL to maintain login state across page refreshes (web only)
+  if (kIsWeb) {
+    await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    print("✅ Firebase initialized with persistence (web)");
+  } else {
+    print("✅ Firebase initialized (mobile)");
+  }
 
   runApp(const MyApp());
 }
@@ -50,6 +55,9 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: Colors.white,
             cardColor: Colors.white,
             dividerTheme: DividerThemeData(color: Colors.grey),
+            progressIndicatorTheme: const ProgressIndicatorThemeData(
+              color: appGreen,
+            ),
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
               backgroundColor: Colors.white,
               selectedItemColor: appGreen,
@@ -80,6 +88,9 @@ class MyApp extends StatelessWidget {
               displayMedium: TextStyle(color: Colors.white),
             ),
             dividerTheme: DividerThemeData(color: Colors.grey),
+            progressIndicatorTheme: const ProgressIndicatorThemeData(
+              color: appGreen,
+            ),
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
               backgroundColor: darkBackground,
               selectedItemColor: appGreen,

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_html/flutter_html.dart';
 import '../../../constants/colors.dart';
 import '../class_join.dart';
 import '../components/student_sidebar.dart';
 import '../student_attendance/student_attendance.dart';
 import '../student_notifications/student_notifications.dart';
+import 'dart:html' as html;
 
 class StudentHomeSreenWeb extends StatefulWidget {
   const StudentHomeSreenWeb({super.key});
@@ -17,20 +19,37 @@ class StudentHomeSreenWeb extends StatefulWidget {
 
 class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
   String? fullName;
+  String? assignedTeacherId;
 
   @override
   void initState() {
     super.initState();
-    fetchStudentName();
+
+    // Debug: Print all scheduled_classes docs
+    FirebaseFirestore.instance.collectionGroup('scheduled_classes').get().then((
+      snapshot,
+    ) {
+      print('Total scheduled_classes docs: ${snapshot.docs.length}');
+      for (var doc in snapshot.docs) {
+        print(doc.data());
+      }
+    });
+
+    fetchStudentNameAndTeacher();
   }
 
-  Future<void> fetchStudentName() async {
+  Future<void> fetchStudentNameAndTeacher() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('students').doc(user.uid).get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('students')
+              .doc(user.uid)
+              .get();
       if (doc.exists) {
         setState(() {
           fullName = doc['fullName'] ?? 'Student';
+          assignedTeacherId = doc['assignedTeacherId'];
         });
       }
     }
@@ -52,7 +71,9 @@ class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
                   Row(
                     children: [
                       Text(
-                        fullName != null ? '👋 Welcome, $fullName!' : '👋 Welcome, Student!',
+                        fullName != null
+                            ? '👋 Welcome, $fullName!'
+                            : '👋 Welcome, Student!',
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -64,7 +85,9 @@ class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => StudentNotificationScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => StudentNotificationScreen(),
+                            ),
                           );
                         },
                       ),
@@ -97,7 +120,10 @@ class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
                                   fullName != null
                                       ? 'Welcome back, $fullName! Your next class starts in 2 hours.'
                                       : 'Welcome back, Student! Your next class starts in 2 hours.',
-                                  style: const TextStyle(fontSize: 18, color: Colors.black),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -105,14 +131,16 @@ class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).scaffoldBackgroundColor,
+                                  color:
+                                      Theme.of(context).scaffoldBackgroundColor,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Flexible(
                                           child: Text(
@@ -128,7 +156,11 @@ class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
                                           onTap: () {
                                             Navigator.push(
                                               context,
-                                              MaterialPageRoute(builder: (context) => const StudentAttendanceScreen()),
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (context) =>
+                                                        const StudentAttendanceScreen(),
+                                              ),
                                             );
                                           },
                                           child: const Text(
@@ -167,27 +199,243 @@ class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // ...existing code...
+                                const SizedBox(height: 32),
                                 const Text(
-                                  'Today\'s Classes',
+                                  'Your Upcoming Classes',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 20,
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                _WebClassCard(
-                                  title: 'Math - Algebra Basics',
-                                  time: '10:00 AM - 11:00 AM',
-                                  teacher: 'Mr. Daniel',
-                                  text: 'Join Class',
+                                FutureBuilder<QuerySnapshot>(
+                                  future: FirebaseFirestore.instance
+                                      .collection('classes')
+                                      .where('studentId',
+                                          isEqualTo:
+                                              FirebaseAuth.instance
+                                                  .currentUser!.uid)
+                                      .get(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                    if (!snapshot.hasData ||
+                                        snapshot.data!.docs.isEmpty) {
+                                      return const Text('No upcoming classes');
+                                    }
+                                    final now = DateTime.now();
+                                    final classes = snapshot.data!.docs.where((doc) {
+                                      final data =
+                                          doc.data() as Map<String, dynamic>;
+                                      final date = data['date'];
+                                      final time = data['time'];
+                                      DateTime? classDateTime;
+                                      try {
+                                        final parts = date.split('/');
+                                        if (parts.length == 3) {
+                                          final month = int.parse(parts[0]);
+                                          final day = int.parse(parts[1]);
+                                          final year = int.parse(parts[2]);
+                                          final time24 = _parseTimeTo24Hour(
+                                            time,
+                                          );
+                                          final timeParts = time24.split(
+                                            ':',
+                                          );
+                                          final hour = int.parse(
+                                            timeParts[0],
+                                          );
+                                          final minute = int.parse(
+                                            timeParts[1],
+                                          );
+                                          classDateTime = DateTime(
+                                            year,
+                                            month,
+                                            day,
+                                            hour,
+                                            minute,
+                                          );
+                                        }
+                                      } catch (_) {
+                                        classDateTime = null;
+                                      }
+                                      return classDateTime != null &&
+                                          (classDateTime.isAfter(now) ||
+                                              classDateTime.isAtSameMomentAs(
+                                                  now));
+                                    }).toList();
+
+                                    // Sort by classDateTime ascending
+                                    classes.sort((a, b) {
+                                      DateTime getDateTime(
+                                        QueryDocumentSnapshot doc,
+                                      ) {
+                                        final data =
+                                            doc.data() as Map<String, dynamic>;
+                                        final date = data['date'];
+                                        final time = data['time'];
+                                        final parts = date.split('/');
+                                        if (parts.length == 3) {
+                                          final month = int.parse(parts[0]);
+                                          final day = int.parse(parts[1]);
+                                          final year = int.parse(parts[2]);
+                                          final time24 = _parseTimeTo24Hour(
+                                            time,
+                                          );
+                                          final timeParts = time24.split(':');
+                                          final hour = int.parse(timeParts[0]);
+                                          final minute = int.parse(
+                                            timeParts[1],
+                                          );
+                                          return DateTime(
+                                            year,
+                                            month,
+                                            day,
+                                            hour,
+                                            minute,
+                                          );
+                                        }
+                                        return DateTime(1970);
+                                      }
+
+                                      return getDateTime(
+                                        a,
+                                      ).compareTo(getDateTime(b));
+                                    });
+
+                                    if (classes.isEmpty) {
+                                      return const Text('No upcoming classes');
+                                    }
+                                    return Column(
+                                      children:
+                                          classes.map((doc) {
+                                            final data =
+                                                doc.data()
+                                                    as Map<String, dynamic>;
+                                            final subject =
+                                                data['subject'] ?? '';
+                                            final classDate =
+                                                data['date'] ?? '';
+                                            final classTime =
+                                                data['time'] ?? '';
+                                            final teacher =
+                                                data['teacherName'] ??
+                                                'Teacher';
+                                            final jitsiRoom =
+                                                data['jitsiRoom'] ?? '';
+                                            final studentJoined =
+                                                data['studentJoined'] ??
+                                                false;
+
+                                            // Parse classDateTime for join logic
+                                            final parts = classDate.split('/');
+                                            DateTime? classDateTime;
+                                            if (parts.length == 3) {
+                                              final month = int.parse(parts[0]);
+                                              final day = int.parse(parts[1]);
+                                              final year = int.parse(parts[2]);
+                                              final time24 = _parseTimeTo24Hour(
+                                                classTime,
+                                              );
+                                              final timeParts = time24.split(
+                                                ':',
+                                              );
+                                              final hour = int.parse(
+                                                timeParts[0],
+                                              );
+                                              final minute = int.parse(
+                                                timeParts[1],
+                                              );
+                                              classDateTime = DateTime(
+                                                year,
+                                                month,
+                                                day,
+                                                hour,
+                                                minute,
+                                              );
+                                            }
+                                            final canJoin =
+                                                !studentJoined &&
+                                                classDateTime != null &&
+                                                DateTime.now().isAfter(
+                                                  classDateTime.subtract(
+                                                    const Duration(minutes: 5),
+                                                  ),
+                                                );
+                                            return Card(
+                                              color: Colors.white,
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 6,
+                                                  ),
+                                              child: ListTile(
+                                                title: Text(subject),
+                                                subtitle: Text(
+                                                  '$classDate at $classTime\n$teacher',
+                                                ),
+                                                trailing: studentJoined
+                                                    ? const Text(
+                                                        'Joined',
+                                                        style: TextStyle(
+                                                          color: Colors.green,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      )
+                                                    : OutlinedButton(
+                                                        onPressed:
+                                                            canJoin && jitsiRoom
+                                                                    .isNotEmpty
+                                                                ? () async {
+                                                                    await FirebaseFirestore
+                                                                        .instance
+                                                                        .collection(
+                                                                          'classes',
+                                                                        )
+                                                                        .doc(doc.id)
+                                                                        .update({
+                                                                          'studentJoined':
+                                                                              true,
+                                                                        });
+                                                                    final url =
+                                                                        'https://meet.jit.si/$jitsiRoom';
+                                                                    html.window.open(
+                                                                      url,
+                                                                      '_blank',
+                                                                    );
+                                                                  }
+                                                                : null,
+                                                        style: OutlinedButton.styleFrom(
+                                                          backgroundColor:
+                                                              canJoin
+                                                                  ? appGreen
+                                                                  : Colors
+                                                                      .grey
+                                                                      .shade300,
+                                                          foregroundColor:
+                                                              Colors.white,
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(16),
+                                                          ),
+                                                        ),
+                                                        child: const Text('Join'),
+                                                      ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                    );
+                                  },
                                 ),
-                                const SizedBox(height: 12),
-                                _WebClassCard(
-                                  title: 'Science - Biology Basics',
-                                  time: '11:30 AM - 12:30 PM',
-                                  teacher: 'Ms. Emily',
-                                  text: 'Join Class',
-                                ),
+                                // ...do not show completed and missed classes here...
+                                // ...existing code...
                                 const SizedBox(height: 32),
                                 const Text(
                                   'Recent Conversations',
@@ -197,16 +445,86 @@ class _StudentHomeSreenWebState extends State<StudentHomeSreenWeb> {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                _WebConversationCard(
-                                  name: 'Miss Sarah',
-                                  message: 'Reminder: Assignment due tomorrow.',
-                                  time: '2 min ago',
-                                ),
-                                const SizedBox(height: 8),
-                                _WebConversationCard(
-                                  name: 'Mr. John',
-                                  message: 'Your feedback is due this week!',
-                                  time: '5 min ago',
+                                FutureBuilder<DocumentSnapshot>(
+                                  future:
+                                      FirebaseFirestore.instance
+                                          .collection('students')
+                                          .doc(
+                                            FirebaseAuth
+                                                .instance
+                                                .currentUser!
+                                                .uid,
+                                          )
+                                          .get(),
+                                  builder: (context, studentSnapshot) {
+                                    if (studentSnapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const CircularProgressIndicator();
+                                    }
+                                    if (studentSnapshot.hasError ||
+                                        !studentSnapshot.hasData ||
+                                        !studentSnapshot.data!.exists) {
+                                      return const Text('Student not found');
+                                    }
+                                    final assignedTeacherId =
+                                        studentSnapshot
+                                            .data!['assignedTeacherId'];
+                                    if (assignedTeacherId == null) {
+                                      return const Text('No teacher assigned');
+                                    }
+                                    return FutureBuilder<QuerySnapshot>(
+                                      future:
+                                          FirebaseFirestore.instance
+                                              .collection('teachers')
+                                              .where(
+                                                'assignedStudentId',
+                                                isEqualTo:
+                                                    FirebaseAuth
+                                                        .instance
+                                                        .currentUser!
+                                                        .uid,
+                                              )
+                                              .get(),
+                                      builder: (context, teacherSnapshot) {
+                                        if (teacherSnapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const CircularProgressIndicator();
+                                        }
+                                        if (teacherSnapshot.hasError ||
+                                            !teacherSnapshot.hasData) {
+                                          return const Text(
+                                            'No conversations found',
+                                          );
+                                        }
+                                        final teachers =
+                                            teacherSnapshot.data!.docs;
+                                        if (teachers.isEmpty) {
+                                          return const Text(
+                                            'No teachers found',
+                                          );
+                                        }
+                                        return Column(
+                                          children:
+                                              teachers.map((doc) {
+                                                final teacherName =
+                                                    doc['fullName'] ??
+                                                    'Teacher';
+                                                return Column(
+                                                  children: [
+                                                    _WebConversationCard(
+                                                      name: teacherName,
+                                                      message:
+                                                          'Reminder: Assignment due tomorrow.',
+                                                      time: '2 min ago',
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                  ],
+                                                );
+                                              }).toList(),
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -230,12 +548,14 @@ class _WebClassCard extends StatelessWidget {
   final String time;
   final String teacher;
   final String text;
+  final String roomName;
 
   const _WebClassCard({
     required this.title,
     required this.time,
     required this.teacher,
     required this.text,
+    required this.roomName,
   });
 
   @override
@@ -262,6 +582,24 @@ class _WebClassCard extends StatelessWidget {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
+                  Widget joinButton = OutlinedButton(
+                    onPressed:
+                        roomName == 'no-room'
+                            ? null
+                            : () {
+                              final url = 'https://meet.jit.si/$roomName';
+                              html.window.open(url, '_blank');
+                            },
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: appGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(text),
+                  );
+
                   if (constraints.maxWidth > 400) {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -270,33 +608,30 @@ class _WebClassCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Text(time, style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 4),
-                              Text(teacher, style: const TextStyle(fontSize: 14)),
+                              Text(
+                                teacher,
+                                style: const TextStyle(fontSize: 14),
+                              ),
                             ],
                           ),
                         ),
                         const SizedBox(width: 12),
                         ConstrainedBox(
-                          constraints: const BoxConstraints(minWidth: 80, maxWidth: 120),
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => ConnectingToClassScreen()),
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: appGreen,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(text),
+                          constraints: const BoxConstraints(
+                            minWidth: 80,
+                            maxWidth: 120,
                           ),
+                          child: joinButton,
                         ),
                       ],
                     );
@@ -304,31 +639,19 @@ class _WebClassCard extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Text(time, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: 4),
                         Text(teacher, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => ConnectingToClassScreen()),
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: appGreen,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(text),
-                          ),
-                        ),
+                        SizedBox(width: double.infinity, child: joinButton),
                       ],
                     );
                   }
@@ -377,7 +700,13 @@ class _WebConversationCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(message, style: const TextStyle(fontSize: 14)),
                   const SizedBox(height: 4),
@@ -390,4 +719,18 @@ class _WebConversationCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _parseTimeTo24Hour(String time) {
+  final timeReg = RegExp(r'(\d{1,2}):(\d{2})\s*([AP]M)', caseSensitive: false);
+  final match = timeReg.firstMatch(time);
+  if (match != null) {
+    int hour = int.parse(match.group(1)!);
+    final minute = int.parse(match.group(2)!);
+    final period = match.group(3)!.toUpperCase();
+    if (period == 'PM' && hour != 12) hour += 12;
+    if (period == 'AM' && hour == 12) hour = 0;
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00';
+  }
+  return '00:00:00';
 }

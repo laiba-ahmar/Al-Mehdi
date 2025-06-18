@@ -32,7 +32,11 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
   Future<void> fetchStudentInfo() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('students').doc(user.uid).get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('students')
+              .doc(user.uid)
+              .get();
       if (doc.exists) {
         final data = doc.data()!;
         setState(() {
@@ -71,15 +75,29 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 18,
+                  ),
                   child: Row(
                     children: [
-                      const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                      const Text(
+                        'Profile',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                        ),
+                      ),
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.notifications),
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentNotificationScreen()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const StudentNotificationScreen(),
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -97,37 +115,63 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
                           child: Card(
                             color: Theme.of(context).cardColor,
                             elevation: 2,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 children: [
                                   CircleAvatar(
                                     radius: 70,
-                                    backgroundImage: uploadedImageBytes != null
-                                        ? MemoryImage(uploadedImageBytes!)
-                                        : null,
+                                    backgroundImage:
+                                        uploadedImageBytes != null
+                                            ? MemoryImage(uploadedImageBytes!)
+                                            : null,
                                     backgroundColor: Colors.purple[100],
-                                    child: uploadedImageBytes == null
-                                        ? const Icon(Icons.person, size: 50, color: Colors.white)
-                                        : null,
+                                    child:
+                                        uploadedImageBytes == null
+                                            ? const Icon(
+                                              Icons.person,
+                                              size: 50,
+                                              color: Colors.white,
+                                            )
+                                            : null,
                                   ),
                                   const SizedBox(height: 10),
                                   TextButton(
                                     onPressed: handleImageUpload,
-                                    child: const Text("Upload", style: TextStyle(color: appGreen, fontSize: 15)),
+                                    child: const Text(
+                                      "Upload",
+                                      style: TextStyle(
+                                        color: appGreen,
+                                        fontSize: 15,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(height: 20),
-                                  Text(fullName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                  Text(
+                                    fullName,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   const SizedBox(height: 10),
-                                  const Text("Student", style: TextStyle(fontSize: 15)),
+                                  const Text(
+                                    "Student",
+                                    style: TextStyle(fontSize: 15),
+                                  ),
                                   const SizedBox(height: 10),
                                   const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(Iconsax.verify, color: appGreen),
                                       SizedBox(width: 5),
-                                      Text("Enrolled", style: TextStyle(color: appGreen)),
+                                      Text(
+                                        "Enrolled",
+                                        style: TextStyle(color: appGreen),
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -143,14 +187,22 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
                           child: Card(
                             color: Theme.of(context).cardColor,
                             elevation: 2,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const SizedBox(height: 15),
-                                  const Text('Edit Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                  const Text(
+                                    'Edit Profile',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   const SizedBox(height: 20),
                                   buildField("Full Name", fullName),
                                   buildField("Email", email),
@@ -161,11 +213,17 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
                                     builder: (context, constraints) {
                                       if (constraints.maxWidth > 300) {
                                         return Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             TextButton(
                                               onPressed: () {},
-                                              child: const Text("Change Password", style: TextStyle(color: appGreen)),
+                                              child: const Text(
+                                                "Change Password",
+                                                style: TextStyle(
+                                                  color: appGreen,
+                                                ),
+                                              ),
                                             ),
                                             ElevatedButton(
                                               onPressed: () {},
@@ -173,7 +231,10 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
                                                 backgroundColor: appGreen,
                                                 foregroundColor: Colors.white,
                                               ),
-                                              child: const Text("Save Changes", style: TextStyle(fontSize: 16)),
+                                              child: const Text(
+                                                "Save Changes",
+                                                style: TextStyle(fontSize: 16),
+                                              ),
                                             ),
                                           ],
                                         );
@@ -183,7 +244,12 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
                                             Center(
                                               child: TextButton(
                                                 onPressed: () {},
-                                                child: const Text("Change Password", style: TextStyle(color: appGreen)),
+                                                child: const Text(
+                                                  "Change Password",
+                                                  style: TextStyle(
+                                                    color: appGreen,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                             const SizedBox(height: 10),
@@ -194,7 +260,12 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
                                                   backgroundColor: appGreen,
                                                   foregroundColor: Colors.white,
                                                 ),
-                                                child: const Text("Save Changes", style: TextStyle(fontSize: 16)),
+                                                child: const Text(
+                                                  "Save Changes",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -225,7 +296,10 @@ class _StudentProfileWebState extends State<StudentProfileWeb> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey)),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey),
+          ),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,

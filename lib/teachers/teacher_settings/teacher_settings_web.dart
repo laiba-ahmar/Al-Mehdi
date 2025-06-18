@@ -9,7 +9,8 @@ class TeacherSettingsScreenWeb extends StatefulWidget {
   const TeacherSettingsScreenWeb({super.key});
 
   @override
-  State<TeacherSettingsScreenWeb> createState() => _TeacherSettingsScreenWebState();
+  State<TeacherSettingsScreenWeb> createState() =>
+      _TeacherSettingsScreenWebState();
 }
 
 class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
@@ -44,13 +45,13 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(
-                          Icons.notifications,
-                        ),
+                        icon: const Icon(Icons.notifications),
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => StudentNotificationScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => StudentNotificationScreen(),
+                            ),
                           );
                         },
                       ),
@@ -67,9 +68,7 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
                         flex: 2,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildPreferenceCard(),
-                          ],
+                          children: [_buildPreferenceCard()],
                         ),
                       ),
                       const SizedBox(width: 24),
@@ -78,9 +77,7 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
                         flex: 1,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildAccountCard(),
-                          ],
+                          children: [_buildAccountCard()],
                         ),
                       ),
                     ],
@@ -95,9 +92,10 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
   }
 
   Widget _buildPreferenceCard() {
-    Color dropdownColor = Theme.of(context).brightness == Brightness.dark
-        ? darkBackground// Dark theme: Red
-        : appLightGreen; // Light theme: Green
+    Color dropdownColor =
+        Theme.of(context).brightness == Brightness.dark
+            ? darkBackground // Dark theme: Red
+            : appLightGreen; // Light theme: Green
     return Card(
       color: Theme.of(context).cardColor,
       shadowColor: Theme.of(context).shadowColor,
@@ -108,24 +106,40 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Preferences', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20,),
-            _buildCheckboxRow(Icons.notifications, "Notifications",notificationsEnabled, (val) {
-              setState(() => notificationsEnabled = val!);
-            }),
+            const Text(
+              'Preferences',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            _buildCheckboxRow(
+              Icons.notifications,
+              "Notifications",
+              notificationsEnabled,
+              (val) {
+                setState(() => notificationsEnabled = val!);
+              },
+            ),
             const Divider(),
-            _buildCheckboxRow(Icons.nightlight_round, "Dark Mode", darkModeEnabled, (val) {
-              setState(() {
-                darkModeEnabled = val!;
-                themeNotifier.value = darkModeEnabled ? ThemeMode.dark : ThemeMode.light;
-              });
-            }),
+            _buildCheckboxRow(
+              Icons.nightlight_round,
+              "Dark Mode",
+              darkModeEnabled,
+              (val) {
+                setState(() {
+                  darkModeEnabled = val!;
+                  themeNotifier.value =
+                      darkModeEnabled ? ThemeMode.dark : ThemeMode.light;
+                });
+              },
+            ),
             const Divider(),
             Row(
               children: [
                 const Icon(Icons.language, color: appGreen),
                 const SizedBox(width: 10),
-                const Expanded(child: Text("Language", style: TextStyle(fontSize: 16))),
+                const Expanded(
+                  child: Text("Language", style: TextStyle(fontSize: 16)),
+                ),
                 DropdownButton<String>(
                   focusColor: Colors.transparent,
                   icon: const Icon(Icons.arrow_drop_down, color: appGreen),
@@ -133,13 +147,31 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
                   dropdownColor: dropdownColor,
                   value: selectedLanguage,
                   items: const [
-                    DropdownMenuItem(value: 'English', child: Text('English', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),)),
-                    DropdownMenuItem(value: 'Arabic', child: Text('Arabic', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400))),
+                    DropdownMenuItem(
+                      value: 'English',
+                      child: Text(
+                        'English',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Arabic',
+                      child: Text(
+                        'Arabic',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
                   ],
                   onChanged: (val) {
                     setState(() => selectedLanguage = val!);
                   },
-                )
+                ),
               ],
             ),
           ],
@@ -161,8 +193,11 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Account Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 20,),
+              const Text(
+                'Account Settings',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -176,11 +211,15 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text("Change Password", style: TextStyle(fontSize: 14),textAlign: TextAlign.center,),
+                        child: Text(
+                          "Change Password",
+                          style: TextStyle(fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 10,),
+                  SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -196,14 +235,24 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text("Logout", style: TextStyle(fontSize: 14,),textAlign: TextAlign.center,),
+                        child: Text(
+                          "Logout",
+                          style: TextStyle(fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 10,),
-                  TextButton(onPressed: (){}, child: Text("Delete Account", style: TextStyle(color: appRed, fontSize: 14)))
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      "Delete Account",
+                      style: TextStyle(color: appRed, fontSize: 14),
+                    ),
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -211,7 +260,12 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
     );
   }
 
-  Widget _buildCheckboxRow(IconData icon, String title, bool value, ValueChanged<bool?> onChanged) {
+  Widget _buildCheckboxRow(
+    IconData icon,
+    String title,
+    bool value,
+    ValueChanged<bool?> onChanged,
+  ) {
     return Row(
       children: [
         Icon(icon, color: appGreen),
@@ -221,9 +275,7 @@ class _TeacherSettingsScreenWebState extends State<TeacherSettingsScreenWeb> {
           value: value,
           onChanged: onChanged,
           activeColor: appGreen,
-          side: BorderSide(
-            color: appGreen,
-          ),
+          side: BorderSide(color: appGreen),
         ),
       ],
     );

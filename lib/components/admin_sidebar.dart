@@ -12,10 +12,7 @@ import '../../../constants/colors.dart';
 class AdminSidebar extends StatelessWidget {
   final int selectedIndex;
 
-  const AdminSidebar({
-    super.key,
-    required this.selectedIndex,
-  });
+  const AdminSidebar({super.key, required this.selectedIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +50,7 @@ class AdminSidebar extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const ScheduleClass(),
-                ),
+                MaterialPageRoute(builder: (context) => const ScheduleClass()),
               );
             },
           ),
@@ -81,9 +76,7 @@ class AdminSidebar extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const ChatScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const ChatScreen()),
               );
             },
           ),
@@ -95,9 +88,7 @@ class AdminSidebar extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
           ),
@@ -109,9 +100,7 @@ class AdminSidebar extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
               );
             },
           ),

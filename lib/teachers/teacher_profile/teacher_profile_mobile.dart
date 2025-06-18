@@ -26,20 +26,41 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
   @override
   void initState() {
     super.initState();
-    fetchTeacherInfo();
+    // Start loading data immediately but don't block the UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fetchTeacherInfo();
+    });
   }
 
   Future<void> fetchTeacherInfo() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('teachers').doc(user.uid).get();
-      if (doc.exists) {
-        final data = doc.data()!;
+      try {
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('teachers')
+                .doc(user.uid)
+                .get();
+        if (doc.exists && mounted) {
+          final data = doc.data()!;
+          setState(() {
+            fullName = data['fullName'] ?? '';
+            email = data['email'] ?? '';
+            phone = data['phoneNumber'] ?? '';
+            degree = data['degree'] ?? '';
+            isLoading = false;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
         setState(() {
-          fullName = data['fullName'] ?? '';
-          email = data['email'] ?? '';
-          phone = data['phoneNumber'] ?? '';
-          degree = data['degree'] ?? '';
           isLoading = false;
         });
       }
@@ -57,19 +78,12 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Text(
-            'Profile',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-          ),
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -82,23 +96,30 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
               children: [
                 selectedImage != null
                     ? CircleAvatar(
-                        radius: 54,
-                        backgroundImage: FileImage(selectedImage!),
-                      )
+                      radius: 54,
+                      backgroundImage: FileImage(selectedImage!),
+                    )
                     : CircleAvatar(
-                        radius: 54,
-                        backgroundColor: Colors.purple[100],
-                        child: const Icon(Icons.person, size: 50, color: Colors.white),
+                      radius: 54,
+                      backgroundColor: appGreen,
+                      child: const Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Colors.white,
                       ),
+                    ),
                 TextButton(
                   onPressed: pickImage,
-                  child: const Text('Upload', style: TextStyle(color: appGreen)),
+                  child: const Text(
+                    'Upload',
+                    style: TextStyle(color: appGreen),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              fullName,
+              fullName.isNotEmpty ? fullName : 'Loading...',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             const SizedBox(height: 18),
@@ -107,16 +128,30 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
               child: Card(
                 color: Theme.of(context).cardColor,
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(18.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      buildField('Full Name', fullName),
-                      buildField('Email', email),
-                      buildField('Phone', phone),
-                      buildField('Degree', degree),
+                      buildField(
+                        'Full Name',
+                        fullName.isNotEmpty ? fullName : 'Loading...',
+                      ),
+                      buildField(
+                        'Email',
+                        email.isNotEmpty ? email : 'Loading...',
+                      ),
+                      buildField(
+                        'Phone',
+                        phone.isNotEmpty ? phone : 'Loading...',
+                      ),
+                      buildField(
+                        'Degree',
+                        degree.isNotEmpty ? degree : 'Loading...',
+                      ),
                     ],
                   ),
                 ),
@@ -136,7 +171,10 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
                       ),
                       child: const Padding(
                         padding: EdgeInsets.all(8.0),
-                        child: Text("Save Changes", style: TextStyle(fontSize: 16)),
+                        child: Text(
+                          "Save Changes",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
@@ -144,7 +182,10 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => ChangePassword()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ChangePassword()),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: appGreen,
@@ -152,7 +193,10 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
                       ),
                       child: const Padding(
                         padding: EdgeInsets.all(8.0),
-                        child: Text("Change Password", style: TextStyle(fontSize: 16)),
+                        child: Text(
+                          "Change Password",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
@@ -171,7 +215,10 @@ class _TeacherProfileMobileState extends State<TeacherProfileMobile> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey)),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey),
+          ),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,

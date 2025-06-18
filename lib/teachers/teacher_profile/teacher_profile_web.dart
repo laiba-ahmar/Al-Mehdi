@@ -26,20 +26,41 @@ class _TeacherProfileWebState extends State<TeacherProfileWeb> {
   @override
   void initState() {
     super.initState();
-    fetchTeacherInfo();
+    // Start loading data immediately but don't block the UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fetchTeacherInfo();
+    });
   }
 
   Future<void> fetchTeacherInfo() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('teachers').doc(user.uid).get();
-      if (doc.exists) {
-        final data = doc.data()!;
+      try {
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('teachers')
+                .doc(user.uid)
+                .get();
+        if (doc.exists && mounted) {
+          final data = doc.data()!;
+          setState(() {
+            fullName = data['fullName'] ?? '';
+            email = data['email'] ?? '';
+            phone = data['phoneNumber'] ?? '';
+            degree = data['degree'] ?? '';
+            isLoading = false;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
         setState(() {
-          fullName = data['fullName'] ?? '';
-          email = data['email'] ?? '';
-          phone = data['phoneNumber'] ?? '';
-          degree = data['degree'] ?? '';
           isLoading = false;
         });
       }
@@ -57,10 +78,6 @@ class _TeacherProfileWebState extends State<TeacherProfileWeb> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Row(
@@ -71,15 +88,29 @@ class _TeacherProfileWebState extends State<TeacherProfileWeb> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 18,
+                  ),
                   child: Row(
                     children: [
-                      const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                      const Text(
+                        'Profile',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                        ),
+                      ),
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.notifications),
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentNotificationScreen()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const StudentNotificationScreen(),
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -97,37 +128,65 @@ class _TeacherProfileWebState extends State<TeacherProfileWeb> {
                           child: Card(
                             color: Theme.of(context).cardColor,
                             elevation: 2,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 children: [
                                   CircleAvatar(
                                     radius: 70,
-                                    backgroundImage: uploadedImageBytes != null
-                                        ? MemoryImage(uploadedImageBytes!)
-                                        : null,
-                                    backgroundColor: Colors.purple[100],
-                                    child: uploadedImageBytes == null
-                                        ? const Icon(Icons.person, size: 50, color: Colors.white)
-                                        : null,
+                                    backgroundImage:
+                                        uploadedImageBytes != null
+                                            ? MemoryImage(uploadedImageBytes!)
+                                            : null,
+                                    backgroundColor: appGreen,
+                                    child:
+                                        uploadedImageBytes == null
+                                            ? const Icon(
+                                              Icons.person,
+                                              size: 50,
+                                              color: Colors.white,
+                                            )
+                                            : null,
                                   ),
                                   const SizedBox(height: 10),
                                   TextButton(
                                     onPressed: handleImageUpload,
-                                    child: const Text("Upload", style: TextStyle(color: appGreen, fontSize: 15)),
+                                    child: const Text(
+                                      "Upload",
+                                      style: TextStyle(
+                                        color: appGreen,
+                                        fontSize: 15,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(height: 20),
-                                  Text(fullName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                  Text(
+                                    fullName.isNotEmpty
+                                        ? fullName
+                                        : 'Loading...',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   const SizedBox(height: 10),
-                                  const Text("Teacher", style: TextStyle(fontSize: 15)),
+                                  const Text(
+                                    "Teacher",
+                                    style: TextStyle(fontSize: 15),
+                                  ),
                                   const SizedBox(height: 10),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [
                                       Icon(Iconsax.verify, color: appGreen),
                                       SizedBox(width: 5),
-                                      Text("Assigned", style: TextStyle(color: appGreen)),
+                                      Text(
+                                        "Assigned",
+                                        style: TextStyle(color: appGreen),
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -143,44 +202,99 @@ class _TeacherProfileWebState extends State<TeacherProfileWeb> {
                           child: Card(
                             color: Theme.of(context).cardColor,
                             elevation: 2,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const SizedBox(height: 15),
-                                  const Text('Edit Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                  const Text(
+                                    'Edit Profile',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   const SizedBox(height: 20),
-                                  buildField("Full Name", fullName),
-                                  buildField("Email", email),
-                                  buildField("Phone", phone),
-                                  buildField("Degree", degree),
+                                  buildField(
+                                    "Full Name",
+                                    fullName.isNotEmpty
+                                        ? fullName
+                                        : 'Loading...',
+                                  ),
+                                  buildField(
+                                    "Email",
+                                    email.isNotEmpty ? email : 'Loading...',
+                                  ),
+                                  buildField(
+                                    "Phone",
+                                    phone.isNotEmpty ? phone : 'Loading...',
+                                  ),
+                                  buildField(
+                                    "Degree",
+                                    degree.isNotEmpty ? degree : 'Loading...',
+                                  ),
                                   const SizedBox(height: 30),
                                   LayoutBuilder(
                                     builder: (context, constraints) {
                                       if (constraints.maxWidth > 300) {
                                         return Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            TextButton(onPressed: () {}, child: const Text("Change Password", style: TextStyle(color: appGreen))),
+                                            TextButton(
+                                              onPressed: () {},
+                                              child: const Text(
+                                                "Change Password",
+                                                style: TextStyle(
+                                                  color: appGreen,
+                                                ),
+                                              ),
+                                            ),
                                             ElevatedButton(
                                               onPressed: () {},
-                                              style: ElevatedButton.styleFrom(backgroundColor: appGreen, foregroundColor: Colors.white),
-                                              child: const Text("Edit Changes", style: TextStyle(fontSize: 16)),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: appGreen,
+                                                foregroundColor: Colors.white,
+                                              ),
+                                              child: const Text(
+                                                "Edit Changes",
+                                                style: TextStyle(fontSize: 16),
+                                              ),
                                             ),
                                           ],
                                         );
                                       } else {
                                         return Column(
                                           children: [
-                                            Center(child: TextButton(onPressed: () {}, child: const Text("Change Password", style: TextStyle(color: appGreen)))),
+                                            Center(
+                                              child: TextButton(
+                                                onPressed: () {},
+                                                child: const Text(
+                                                  "Change Password",
+                                                  style: TextStyle(
+                                                    color: appGreen,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                             const SizedBox(height: 10),
                                             Center(
                                               child: ElevatedButton(
                                                 onPressed: () {},
-                                                style: ElevatedButton.styleFrom(backgroundColor: appGreen, foregroundColor: Colors.white),
-                                                child: const Text("Save Changes", style: TextStyle(fontSize: 16)),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: appGreen,
+                                                  foregroundColor: Colors.white,
+                                                ),
+                                                child: const Text(
+                                                  "Save Changes",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -211,7 +325,10 @@ class _TeacherProfileWebState extends State<TeacherProfileWeb> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey)),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey),
+          ),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,

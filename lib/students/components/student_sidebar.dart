@@ -12,14 +12,10 @@ import '../student_settings/student_settings.dart';
 class StudentSidebar extends StatelessWidget {
   final int selectedIndex;
 
-  const StudentSidebar({
-    super.key,
-    required this.selectedIndex,
-  });
+  const StudentSidebar({super.key, required this.selectedIndex});
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       width: 240,
       decoration: const BoxDecoration(
@@ -110,9 +106,7 @@ class StudentSidebar extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => StudentProfileScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => StudentProfileScreen()),
               );
             },
           ),

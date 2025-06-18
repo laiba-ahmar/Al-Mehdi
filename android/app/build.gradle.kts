@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.al_mehdi_online_school"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
     applicationId = "com.example.al_mehdi_online_school"
-    minSdk = 23
+    minSdk = 26
     targetSdk = flutter.targetSdkVersion
     versionCode = flutter.versionCode
     versionName = flutter.versionName

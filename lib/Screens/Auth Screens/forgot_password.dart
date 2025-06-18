@@ -24,14 +24,29 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     }
 
     try {
+      // Send reset email using Firebase Auth
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Reset link sent to $email")),
+        SnackBar(content: Text("A password reset link has been sent to $email")),
       );
-      Navigator.pop(context); // Back to login screen
+      // Optionally, pop back to login after a short delay
+      await Future.delayed(Duration(seconds: 2));
+      if (mounted) Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'user-not-found') {
+        message = "No user found for that email.";
+      } else if (e.code == 'invalid-email') {
+        message = "The email address is not valid.";
+      } else {
+        message = "Error: ${e.message}";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
+        SnackBar(content: Text("An unexpected error occurred.")),
       );
     }
   }

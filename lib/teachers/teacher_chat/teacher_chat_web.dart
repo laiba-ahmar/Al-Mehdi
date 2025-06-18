@@ -1,7 +1,10 @@
 import 'package:al_mehdi_online_school/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../components/sidebar.dart';
 import 'chats.dart';
+import '../../services/chat_service.dart';
 
 class TeacherChatScreenWeb extends StatefulWidget {
   const TeacherChatScreenWeb({super.key});
@@ -12,6 +15,64 @@ class TeacherChatScreenWeb extends StatefulWidget {
 
 class _TeacherChatScreenWebState extends State<TeacherChatScreenWeb> {
   int? selectedChatIndex;
+  String? selectedStudentId;
+  List<Map<String, dynamic>> students = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAssignedStudents();
+  }
+
+  Future<void> _loadAssignedStudents() async {
+    try {
+      final studentsSnapshot =
+          await FirebaseFirestore.instance
+              .collection('students')
+              .where(
+                'assignedTeacherId',
+                isEqualTo: FirebaseAuth.instance.currentUser!.uid,
+              )
+              .get();
+
+      setState(() {
+        students =
+            studentsSnapshot.docs.map((doc) {
+              final data = doc.data();
+              return {
+                'id': doc.id,
+                'name': data['fullName'] ?? 'Student',
+                'avatar': 'https://i.pravatar.cc/100?u=${doc.id}',
+              };
+            }).toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error loading assigned students: $e');
+    }
+  }
+
+  String _formatTime(Timestamp? timestamp) {
+    if (timestamp == null) return 'Now';
+
+    final now = DateTime.now();
+    final messageTime = timestamp.toDate();
+    final difference = now.difference(messageTime);
+
+    if (difference.inMinutes < 1) {
+      return 'Now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else {
+      return '${messageTime.day}/${messageTime.month}/${messageTime.year}';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,14 +101,11 @@ class _TeacherChatScreenWebState extends State<TeacherChatScreenWeb> {
                   ),
                   child: const Text(
                     'Chats',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                   ),
                 ),
                 const Divider(),
-                SizedBox(height: 10,),
+                SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -56,7 +114,7 @@ class _TeacherChatScreenWebState extends State<TeacherChatScreenWeb> {
                   child: TextField(
                     cursorColor: appGreen,
                     decoration: InputDecoration(
-                      hintText: 'Search chats...',
+                      hintText: 'Search students...',
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: 0,
                         horizontal: 16,
@@ -80,28 +138,70 @@ class _TeacherChatScreenWebState extends State<TeacherChatScreenWeb> {
                 ),
                 SizedBox(height: 10),
                 Expanded(
-                  child: ListView(
-                    children: [
-                      ChatListTile(
-                        avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzmDFOpRqmQmU64T6__2MDOl6NLaCK4I-10MHVrCGltXOSeXcl56_sD59-0ddr4M9aNc0&usqp=CAU',
-                        name: 'Mr. Hafiz',
-                        message: 'Can we do Chapter 4 today?',
-                        time: '2:30 PM',
-                        selected: selectedChatIndex == 0,
-                        onTap:
-                            () => setState(() => selectedChatIndex = 0),
-                      ),
-                      ChatListTile(
-                        avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzmDFOpRqmQmU64T6__2MDOl6NLaCK4I-10MHVrCGltXOSeXcl56_sD59-0ddr4M9aNc0&usqp=CAU',
-                        name: 'Ali',
-                        message: "Sure! Let's revise that first.",
-                        time: '2:15 PM',
-                        selected: selectedChatIndex == 1,
-                        onTap:
-                            () => setState(() => selectedChatIndex = 1),
-                      ),
-                    ],
-                  ),
+                  child:
+                      isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : students.isEmpty
+                          ? const Center(
+                            child: Text(
+                              'No assigned students found',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                          : ListView.builder(
+                            itemCount: students.length,
+                            itemBuilder: (context, index) {
+                              final student = students[index];
+
+                              return StreamBuilder<QuerySnapshot>(
+                                stream:
+                                    FirebaseFirestore.instance
+                                        .collection('chatRooms')
+                                        .where(
+                                          'participants',
+                                          arrayContains: student['id'],
+                                        )
+                                        .orderBy('updatedAt', descending: true)
+                                        .limit(1)
+                                        .snapshots(),
+                                builder: (context, chatSnapshot) {
+                                  String lastMessage =
+                                      'Click to start chatting';
+                                  String timeText = 'Now';
+
+                                  if (chatSnapshot.hasData &&
+                                      chatSnapshot.data!.docs.isNotEmpty) {
+                                    final chatData =
+                                        chatSnapshot.data!.docs.first.data()
+                                            as Map<String, dynamic>;
+                                    lastMessage =
+                                        chatData['lastMessage'] ??
+                                        'Click to start chatting';
+                                    final lastMessageTime =
+                                        chatData['lastMessageTime']
+                                            as Timestamp?;
+                                    timeText = _formatTime(lastMessageTime);
+                                  }
+
+                                  return ChatListTile(
+                                    avatar: student['avatar'],
+                                    name: student['name'],
+                                    message: lastMessage,
+                                    time: timeText,
+                                    selected: selectedChatIndex == index,
+                                    onTap:
+                                        () => setState(() {
+                                          selectedChatIndex = index;
+                                          selectedStudentId = student['id'];
+                                        }),
+                                  );
+                                },
+                              );
+                            },
+                          ),
                 ),
               ],
             ),
@@ -109,32 +209,33 @@ class _TeacherChatScreenWebState extends State<TeacherChatScreenWeb> {
           // Chat conversation or empty area
           Expanded(
             child:
-            selectedChatIndex == null
-                ? const Center(
-              child: Text(
-                'select the chat to appear',
-                style: TextStyle(fontSize: 16),
-              ),
-            )
-                : ChatConversation(
-              chat:
-              selectedChatIndex == 0
-                  ? {
-                'avatar': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzmDFOpRqmQmU64T6__2MDOl6NLaCK4I-10MHVrCGltXOSeXcl56_sD59-0ddr4M9aNc0&usqp=CAU',
-                'name': 'Mr. Hafiz',
-                'online': true,
-              }
-                  : {
-                'avatar': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzmDFOpRqmQmU64T6__2MDOl6NLaCK4I-10MHVrCGltXOSeXcl56_sD59-0ddr4M9aNc0&usqp=CAU',
-                'name': 'Ali',
-                'online': false,
-              },
-            ),
+                selectedChatIndex == null
+                    ? const Center(
+                      child: Text(
+                        'Select a student to start messaging',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    )
+                    : students.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'No assigned students found',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
+                    : selectedChatIndex! >= students.length
+                    ? const Center(child: Text('Student not found'))
+                    : ChatConversation(
+                      chat: {
+                        'avatar': students[selectedChatIndex!]['avatar'],
+                        'name': students[selectedChatIndex!]['name'],
+                        'online': true,
+                        'studentId': students[selectedChatIndex!]['id'],
+                      },
+                    ),
           ),
         ],
       ),
     );
   }
 }
-
-

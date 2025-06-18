@@ -31,7 +31,11 @@ class _StudentProfileMobileState extends State<StudentProfileMobile> {
   Future<void> fetchStudentData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('students').doc(user.uid).get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('students')
+              .doc(user.uid)
+              .get();
       if (doc.exists) {
         final data = doc.data()!;
         setState(() {
@@ -78,15 +82,20 @@ class _StudentProfileMobileState extends State<StudentProfileMobile> {
               children: [
                 CircleAvatar(
                   radius: 54,
-                  backgroundImage: selectedImage != null
-                      ? FileImage(selectedImage!)
-                      : const NetworkImage(
-                          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzmDFOpRqmQmU64T6__2MDOl6NLaCK4I-10MHVrCGltXOSeXcl56_sD59-0ddr4M9aNc0&usqp=CAU',
-                        ) as ImageProvider,
+                  backgroundImage:
+                      selectedImage != null
+                          ? FileImage(selectedImage!)
+                          : const NetworkImage(
+                                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzmDFOpRqmQmU64T6__2MDOl6NLaCK4I-10MHVrCGltXOSeXcl56_sD59-0ddr4M9aNc0&usqp=CAU',
+                              )
+                              as ImageProvider,
                 ),
                 TextButton(
                   onPressed: pickImage,
-                  child: const Text('Upload', style: TextStyle(color: appGreen)),
+                  child: const Text(
+                    'Upload',
+                    style: TextStyle(color: appGreen),
+                  ),
                 ),
               ],
             ),
@@ -101,7 +110,9 @@ class _StudentProfileMobileState extends State<StudentProfileMobile> {
               child: Card(
                 color: Theme.of(context).cardColor,
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(18.0),
                   child: Column(
@@ -130,7 +141,10 @@ class _StudentProfileMobileState extends State<StudentProfileMobile> {
                       ),
                       child: const Padding(
                         padding: EdgeInsets.all(8.0),
-                        child: Text("Save Changes", style: TextStyle(fontSize: 16)),
+                        child: Text(
+                          "Save Changes",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
@@ -138,7 +152,10 @@ class _StudentProfileMobileState extends State<StudentProfileMobile> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => ChangePassword()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ChangePassword()),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: appGreen,
@@ -146,7 +163,10 @@ class _StudentProfileMobileState extends State<StudentProfileMobile> {
                       ),
                       child: const Padding(
                         padding: EdgeInsets.all(8.0),
-                        child: Text("Change Password", style: TextStyle(fontSize: 16)),
+                        child: Text(
+                          "Change Password",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
@@ -165,7 +185,10 @@ class _StudentProfileMobileState extends State<StudentProfileMobile> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey)),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: appGrey),
+          ),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,
